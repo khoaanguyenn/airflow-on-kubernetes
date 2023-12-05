@@ -43,6 +43,13 @@ Docker desktop: 4.10.1
 4. push the airflow image to local docker registry `docker push localhost:5001/airflow_dags:0.1.0`
 5. deploy helm chart `helm upgrade --install airflow . --values values.yaml --set airflow.dags_image.repository=localhost:5001/airflow_dags --set airflow.dags_image.tags=0.1.0`
 
+## ⚡ Quick start
+
+1. Create Kubernetes cluster: `kind_cluster/create_cluster_with_registry.sh` from root directory
+2. Setup Airflow on the cluster: `./setup_cluster.sh` from the root directory
+3. Port-forwarding to Airflow: `kubectl port-forward svc/airflow-webserver-svc 8080:8080 -n default`
+4. To delete cluster: `./delete_cluster.sh`
+
 ## KubernetesPodOperator DAG
 
 A new DAG has been added named `hello_KubePodOp` (located here `airflow-dags/dags/kubePodOpDag.py`), that demonstrates usage of KubernetesPodOperator as a task. 
