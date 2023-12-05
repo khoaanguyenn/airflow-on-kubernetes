@@ -10,8 +10,8 @@ airflow:
   configs:
     fernet_key: 9jgWYeShQAYRS5E4Gu_n9GoGAuml4n50IpS-jifVqdA=
 
-mysql:
-  host: mysql
+postgres:
+  host: postgres
   username: airflow
   database: airflow
   password: "12345678"

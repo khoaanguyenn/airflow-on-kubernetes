@@ -7,7 +7,7 @@ spec:
   ports:
     - name: web
       protocol: TCP
-      port: 80
+      port: 8080
       targetPort: 8080
   selector:
     app: airflow-webserver-app
@@ -29,11 +29,10 @@ spec:
     spec:
       restartPolicy: Always
       initContainers:
-        - name: wait-for-mysql
-          image: public.ecr.aws/runecast/busybox:1.32.1
+        - name: wait-for-postgres
+          image: postgres:15
           imagePullPolicy: IfNotPresent
-          command: [ 'sh', '-c', 'echo -e "Checking for the availability of MySQL Server deployment"; while ! nc -z mysql 3306; do sleep 2;
-                      echo waiting...; done; echo -e "  >> MySQL DB Server has started";' ]
+          command: ['sh', '-c', 'until pg_isready -h postgres -p 5432; do echo waiting for database; sleep 2; done;']
       containers:
         - name: airflow-webserver-app
           image: {{ .Values.airflow.dags_image.repository | toString }}:{{ .Values.airflow.dags_image.tag | toString }}
@@ -49,21 +48,21 @@ spec:
                   apiVersion: v1
                   fieldPath: metadata.namespace
             - name: DB_HOST
-              value: {{ .Values.mysql.host }}
+              value: {{ .Values.postgres.host }}
             - name: DB_DATABASE
-              value: {{ .Values.mysql.database }}
+              value: {{ .Values.postgres.database }}
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: mysql
+                  name: postgres
                   key: username
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql
+                  name: postgres
                   key: password
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
-              value: mysql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):3306/$(DB_DATABASE)
+              value: postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):5432/$(DB_DATABASE)
             - name: AIRFLOW__WEBSERVER__SECRET_KEY
               valueFrom:
                 secretKeyRef:
