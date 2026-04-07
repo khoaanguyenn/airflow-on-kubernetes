@@ -18,33 +18,66 @@ spec:
         - name: wait-for-postgres
           image: postgres:15
           imagePullPolicy: IfNotPresent
-          command: ['sh', '-c', 'until pg_isready -h postgres -p 5432 -U airflow; do echo waiting for database; sleep 2; done;']
+          resources:
+            {{- toYaml .Values.postgres.resources | nindent 12 }}
+          command: ['sh', '-c', 'until pg_isready -h $(DB_HOST) -p 5432 -U $(DB_USER); do echo waiting for database; sleep 2; done;']
+          env:
+            - name: DB_HOST
+              value: {{ .Values.postgres.host }}
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: username
         - name: run-airflow-migrations
           image: {{ .Values.airflow.dags_image.repository | toString }}:{{ .Values.airflow.dags_image.tag | toString }}
           imagePullPolicy: {{ .Values.airflow.dags_image.pull_policy }}
+          resources:
+            {{- toYaml .Values.resources.scheduler | nindent 12 }}
           command: [ "/bin/bash", "-c" ]
           args: [ "airflow db init; airflow db upgrade" ]
           env:
             - name: AIRFLOW__CORE__FERNET_KEY
-              value: {{ .Values.airflow.configs.fernet_key }}
+              valueFrom:
+                secretKeyRef:
+                  name: airflow
+                  key: fernet_key
             - name: DB_HOST
               value: {{ .Values.postgres.host }}
             - name: DB_DATABASE
               value: {{ .Values.postgres.database }}
             - name: DB_USER
-              value: {{ .Values.postgres.username }}
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: username
             - name: DB_PASSWORD
-              value: {{ .Values.postgres.password | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: password
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
-              value: postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):5432/$(DB_DATABASE)
+              value: postgresql+psycopg2://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):5432/$(DB_DATABASE)
             - name: AIRFLOW__CORE__LOAD_EXAMPLES
               value: "false"
         - name: create-admin-user
           image: {{ .Values.airflow.dags_image.repository | toString }}:{{ .Values.airflow.dags_image.tag | toString }}
           imagePullPolicy: {{ .Values.airflow.dags_image.pull_policy }}
+          resources:
+            {{- toYaml .Values.resources.scheduler | nindent 12 }}
           command: [ "/bin/bash", "-c" ]
-          args: [ "airflow users create -r Admin -u {{ .Values.airflow.webserver.username }} -e admin@info.com -f admin -l user -p {{ .Values.airflow.webserver.password }} " ]
+          args: [ "airflow users create -r Admin -u $(ADMIN_USERNAME) -e admin@info.com -f admin -l user -p $(ADMIN_PASSWORD) " ]
           env:
+            - name: ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: webserver
+                  key: username
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: webserver
+                  key: password
             - name: AIRFLOW__CORE__FERNET_KEY
               valueFrom:
                 secretKeyRef:
@@ -70,6 +103,8 @@ spec:
         - name: airflow-scheduler
           image: {{ .Values.airflow.dags_image.repository | toString }}:{{ .Values.airflow.dags_image.tag | toString }}
           imagePullPolicy: IfNotPresent
+          resources:
+            {{- toYaml .Values.resources.scheduler | nindent 12 }}
           command: [ "/bin/bash", "-c" ]
           args: [ "airflow scheduler" ]
           env:

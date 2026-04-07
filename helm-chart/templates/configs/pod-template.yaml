@@ -17,17 +17,26 @@ data:
             - name: AIRFLOW__CORE__EXECUTOR
               value: LocalExecutor
             - name: AIRFLOW__CORE__FERNET_KEY
-              value: {{ .Values.airflow.configs.fernet_key }}
+              valueFrom:
+                secretKeyRef:
+                  name: airflow
+                  key: fernet_key
             - name: DB_HOST
               value: {{ .Values.postgres.host }}
             - name: DB_DATABASE
               value: {{ .Values.postgres.database }}
             - name: DB_USER
-              value: {{ .Values.postgres.user }}
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: username
             - name: DB_PASSWORD
-              value: {{ .Values.postgres.password | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: password
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
-              value: postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):5432/$(DB_DATABASE)
+              value: postgresql+psycopg2://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):5432/$(DB_DATABASE)
           image: dummy_image
           imagePullPolicy: IfNotPresent
           name: base

@@ -32,13 +32,41 @@ spec:
         - name: wait-for-postgres
           image: postgres:15
           imagePullPolicy: IfNotPresent
-          command: ['sh', '-c', 'until pg_isready -h postgres -p 5432; do echo waiting for database; sleep 2; done;']
+          resources:
+            {{- toYaml .Values.postgres.resources | nindent 12 }}
+          command: ['sh', '-c', 'until pg_isready -h $(DB_HOST) -p 5432 -U $(DB_USER); do echo waiting for database; sleep 2; done;']
+          env:
+            - name: DB_HOST
+              value: {{ .Values.postgres.host }}
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: username
       containers:
         - name: airflow-webserver-app
           image: {{ .Values.airflow.dags_image.repository | toString }}:{{ .Values.airflow.dags_image.tag | toString }}
           imagePullPolicy: {{ .Values.airflow.dags_image.pull_policy }}
           ports:
             - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources.webserver | nindent 12 }}
           command: [ "/bin/bash", "-c", "--" ]
           args: [ "airflow webserver" ]
           env:
@@ -62,7 +90,7 @@ spec:
                   name: postgres
                   key: password
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
-              value: postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):5432/$(DB_DATABASE)
+              value: postgresql+psycopg2://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):5432/$(DB_DATABASE)
             - name: AIRFLOW__WEBSERVER__SECRET_KEY
               valueFrom:
                 secretKeyRef:
