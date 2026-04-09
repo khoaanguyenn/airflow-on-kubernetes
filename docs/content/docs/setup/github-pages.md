@@ -40,23 +40,27 @@ module:
 
 The workflow `.github/workflows/deploy-docs.yml` is split into two jobs: `build` and `deploy`.
 
-### Testing on Feature Branches
-The `build` job runs on all branches (including feature branches matching `setup-hextra-docs-s3-*`) to verify that the documentation builds correctly.
+### Testing Strategy
+Automatic deployment is restricted to the `main` branch due to GitHub's Environment Protection Rules for GitHub Pages.
 
-If you want to test the full deployment from a feature branch, you may need to adjust the Environment protection rules in GitHub Settings, as by default, only the `main` branch may be allowed to deploy to the `github-pages` environment.
-
-## 4. Local Preview
-
+#### Local Preview
 The most common way to test changes is by running Hugo locally:
-
 ```bash
 cd docs
 hugo server
 ```
 This will start a local server at `http://localhost:1313/` with live reloading.
 
-## 5. Deployment Verification
+#### Manual Testing on GitHub
+You can manually trigger the workflow on any branch using the **workflow_dispatch** event:
+1. Go to the **Actions** tab in your repository.
+2. Select the **Deploy Documentation** workflow.
+3. Click the **Run workflow** dropdown and select your branch.
 
-After pushing changes, you can monitor the progress in the **Actions** tab.
+Note: Deployment to the live site will still be skipped unless triggered from the `main` branch, but the `build` job will verify your changes.
+
+## 4. Deployment Verification
+
+After pushing changes to `main`, you can monitor the progress in the **Actions** tab.
 - The **build** job will always run to verify your changes.
 - The **deploy** job will only run on the `main` branch.

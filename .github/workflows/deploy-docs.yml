@@ -3,9 +3,9 @@ on:
   push:
     branches:
       - main
-      - 'setup-hextra-docs-s3-*'
     paths:
       - 'docs/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
