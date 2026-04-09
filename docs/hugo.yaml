@@ -15,9 +15,6 @@ params:
     display_community_link: true
   navbar:
     display_title: true
-    logo:
-      enabled: true
-      path: logo.svg
   search:
     enable: true
     nextjs: true
