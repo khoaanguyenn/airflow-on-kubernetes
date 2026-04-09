@@ -1,8 +1,9 @@
-name: Deploy Documentation
+name: Documentation
 on:
   push:
     branches:
       - main
+      - 'setup-hextra-docs-s3-*'
     paths:
       - 'docs/**'
   workflow_dispatch:
@@ -51,6 +52,7 @@ jobs:
           path: ./docs/public
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     environment:
       name: github-pages

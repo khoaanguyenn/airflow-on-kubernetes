@@ -38,26 +38,23 @@ module:
 
 ## 3. GitHub Actions Workflow
 
-The workflow `.github/workflows/deploy-docs.yml` is split into two jobs: `build` and `deploy`.
+The workflow `.github/workflows/docs.yml` manages both verification and deployment.
 
 ### Testing Strategy
-Automatic deployment is restricted to the `main` branch due to GitHub's Environment Protection Rules for GitHub Pages.
+The workflow is split into two jobs: `build` and `deploy`.
 
-#### Local Preview
+- **Build Job**: This job runs on all pushes to the `docs/` directory, including feature branches. It verifies that the site builds correctly and uploads the resulting artifact.
+- **Deploy Job**: This job only runs on the `main` branch. It takes the artifact from the `build` job and publishes it to GitHub Pages.
+
+**Note**: When working on a feature branch, you will see the `deploy` job appear as "skipped". This is expected and ensures that only the stable version from the `main` branch is ever published to the live site.
+
+### Local Preview
 The most common way to test changes is by running Hugo locally:
 ```bash
 cd docs
 hugo server
 ```
 This will start a local server at `http://localhost:1313/` with live reloading.
-
-#### Manual Testing on GitHub
-You can manually trigger the workflow on any branch using the **workflow_dispatch** event:
-1. Go to the **Actions** tab in your repository.
-2. Select the **Deploy Documentation** workflow.
-3. Click the **Run workflow** dropdown and select your branch.
-
-Note: Deployment to the live site will still be skipped unless triggered from the `main` branch, but the `build` job will verify your changes.
 
 ## 4. Deployment Verification
 
