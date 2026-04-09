@@ -38,55 +38,31 @@ module:
 
 ## 3. GitHub Actions Workflow
 
-The workflow `.github/workflows/deploy-docs.yml` is configured to build and deploy to GitHub Pages:
+The workflow `.github/workflows/deploy-docs.yml` is configured to build and deploy to GitHub Pages.
+
+### Testing on Feature Branches
+To test documentation changes without merging to `main`, you can update the `on.push.branches` section of the workflow file to include your feature branch name:
 
 ```yaml
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
-jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v3
-        with:
-          hugo-version: '0.146.0'
-          extended: true
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Build
-        run: |
-          cd docs
-          hugo --minify
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./docs/public
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+on:
+  push:
+    branches:
+      - main
+      - 'your-feature-branch' # Add your branch here
 ```
 
+The current configuration is set to match `setup-hextra-docs-s3-*` branches for testing this specific setup.
+
 ## 4. Local Preview
-To preview the documentation locally:
+
+The most common way to test changes is by running Hugo locally:
+
 ```bash
 cd docs
 hugo server
 ```
+This will start a local server at `http://localhost:1313/` with live reloading.
+
+## 5. Deployment Verification
+
+After pushing changes to a branch that triggers the workflow, you can monitor the progress in the **Actions** tab of your GitHub repository. Once complete, the URL of the deployed site will be available in the deployment job summary.
