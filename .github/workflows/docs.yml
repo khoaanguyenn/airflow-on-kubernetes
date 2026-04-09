@@ -52,7 +52,7 @@ jobs:
           path: ./docs/public
 
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || contains(github.ref, 'setup-hextra-docs-s3')
     needs: build
     environment:
       name: github-pages
