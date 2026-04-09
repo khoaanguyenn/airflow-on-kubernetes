@@ -44,9 +44,9 @@ The workflow `.github/workflows/docs.yml` manages both verification and deployme
 The workflow is split into two jobs: `build` and `deploy`.
 
 - **Build Job**: This job runs on all pushes to the `docs/` directory, including feature branches. It verifies that the site builds correctly and uploads the resulting artifact.
-- **Deploy Job**: This job only runs on the `main` branch. It takes the artifact from the `build` job and publishes it to GitHub Pages.
+- **Deploy Job**: This job runs on the `main` branch and currently also on the `setup-hextra-docs-s3-*` feature branches for testing purposes.
 
-**Note**: When working on a feature branch, you will see the `deploy` job appear as "skipped". This is expected and ensures that only the stable version from the `main` branch is ever published to the live site.
+**Note**: When working on other feature branches, you will see the `deploy` job appear as "skipped". This ensures that only finalized content from `main` is published to the production site.
 
 ### Local Preview
 The most common way to test changes is by running Hugo locally:
@@ -58,6 +58,6 @@ This will start a local server at `http://localhost:1313/` with live reloading.
 
 ## 4. Deployment Verification
 
-After pushing changes to `main`, you can monitor the progress in the **Actions** tab.
+After pushing changes, you can monitor the progress in the **Actions** tab.
 - The **build** job will always run to verify your changes.
-- The **deploy** job will only run on the `main` branch.
+- The **deploy** job will run if the branch is `main` or the current testing branch.
